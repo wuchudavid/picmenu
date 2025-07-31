@@ -1,35 +1,137 @@
-<a href="https://www.picmenu.co">
-  <img alt="PicMenu" src="./public/og-image.png">
-  <h1 align="center">PicMenu</h1>
-</a>
+# PicMenu - AI-Powered Menu Visualizer
 
-<p align="center">
-  Take a picture of your restaurant menu and generate nice images for each dish.
-</p>
+A modern web application that transforms menu images into interactive visual experiences with AI-generated images and Excel export capabilities.
 
-## Tech stack
+## Features
 
-- [Llama 3.2 Vision 90B](https://togetherai.link/) on Together AI to extract menu items from an image
-- [Llama 3.1 8B](https://togetherai.link/) on Together AI for structured outputs (JSON mode)
-- [Flux Schnell](https://togetherai.link/) on Together AI for image generation
-- [Next.js](https://nextjs.org/) with TypeScript for the app framework
-- [Shadcn](https://ui.shadcn.com/) for UI components & [Tailwind](https://tailwindcss.com/) for styling
-- [Plausible](https://plausible.io/) & [Helicone](https://helicone.ai/) for analytics & observability
+### 🖼️ **Menu Image Processing**
+- Upload menu images via drag & drop
+- **NEW**: Take pictures directly with your device camera
+- AI-powered menu item extraction using Together AI
+- Automatic parsing of menu items, prices, and descriptions
 
-## Cloning & running
+### 🎨 **AI-Generated Visuals**
+- Generate realistic food images for each menu item
+- High-quality, detailed food photography
+- Powered by FLUX.1-schnell AI model
 
-1. Clone the repo: `git clone https://github.com/Nutlope/picmenu`
-2. Create a `.env` file and add your [Together AI API key](https://api.together.xyz/settings/api-keys): `TOGETHER_API_KEY=`
-3. Create an S3 bucket and add the credentials to your `.env` file. Follow [this guide](https://next-s3-upload.codingvalue.com/setup) to set them up. All required values are in the `.env.example` file.
-4. Run `npm install` and `npm run dev` to install dependencies and run locally.
+### 📊 **Excel Export Functionality**
+- **NEW**: Export individual menu items to Excel
+- **NEW**: Generate comprehensive menu reports with multiple sheets
+- **NEW**: Download full reports with summary statistics
+- Automatic price analysis and statistics
 
-## Future Tasks
+### 🔍 **Interactive Features**
+- Search and filter menu items
+- Responsive grid layout
+- Hover effects with individual item export
+- Real-time processing status updates
 
-- [ ] Generate additional details (ingredients, origin, calories, taste) then display them in a modal when a user clicks a menu item
-- [ ] After upload, do a nice scroll to the loading state when it's loading
-- [ ] Better account for errors if it crashes (or if menu is too big). Also warn users it can take up to 60 seconds
-- [ ] Make the "use our example" link show a lot of custom menus in different languages, maybe in a modal
-- [ ] Iterate on the image prompt to make the images more realistic
-- [ ] Try out using Flux Dev instead of Flux Schnell
-- [ ] Add some tags as well (like spicy, vegetarian, vegan, etc.) to make the UI better
-- [ ] Add filters for those tags to be able to filter by them for food restrictions
+## Technology Stack
+
+- **Frontend**: Next.js 14, React 18, TypeScript
+- **Styling**: Tailwind CSS
+- **AI Services**: Together AI (Llama-3.2-90B-Vision, FLUX.1-schnell)
+- **File Processing**: XLSX, FileSaver.js
+- **Image Upload**: Next-S3-Upload
+- **Camera Access**: Web MediaDevices API
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Together AI API key
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd picmenu
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Set up environment variables:
+```bash
+cp .example.env .env.local
+```
+
+Add your Together AI API key to `.env.local`:
+```
+TOGETHER_API_KEY=your_api_key_here
+```
+
+4. Run the development server:
+```bash
+npm run dev
+```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Usage
+
+### Taking Menu Pictures
+1. Click "Take Picture" to access your device camera
+2. Position your camera over the menu
+3. Click "Capture" to take the photo
+4. The image will be automatically processed
+
+### Uploading Menu Images
+1. Drag and drop a menu image onto the upload area
+2. Or click to browse and select an image file
+3. Supported formats: JPG, JPEG, PNG
+
+### Exporting to Excel
+- **Individual Items**: Hover over any menu item and click "Export"
+- **Full Menu**: Click "Export to Excel" for a simple export
+- **Detailed Report**: Click "Download Full Report" for comprehensive analysis
+
+### Excel Report Features
+- **Menu Items Sheet**: Complete list with item numbers, names, prices, descriptions
+- **Summary Sheet**: Statistics including total items, price range, average price
+- **Metadata**: Original image URL and generation timestamp
+
+## API Endpoints
+
+### `/api/parseMenu`
+- **Method**: POST
+- **Body**: `{ menuUrl: string }`
+- **Response**: `{ menu: MenuItem[] }`
+
+### `/api/s3-upload`
+- Handles image upload to S3 storage
+- Returns public URL for processing
+
+## Environment Variables
+
+```env
+TOGETHER_API_KEY=your_together_ai_api_key
+HELICONE_API_KEY=your_helicone_key (optional)
+NEXT_PUBLIC_S3_UPLOAD_KEY=your_s3_access_key
+NEXT_PUBLIC_S3_UPLOAD_SECRET=your_s3_secret_key
+NEXT_PUBLIC_S3_UPLOAD_BUCKET=your_s3_bucket_name
+NEXT_PUBLIC_S3_UPLOAD_REGION=your_s3_region
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
+
+## Acknowledgments
+
+- Powered by [Together AI](https://togetherai.link/)
+- Built with Next.js and React
+- Styled with Tailwind CSS

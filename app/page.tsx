@@ -1,11 +1,14 @@
 "use client";
 
-import { useS3Upload } from "next-s3-upload";
 import { useState } from "react";
 import Dropzone from "react-dropzone";
-import { PhotoIcon, MagnifyingGlassIcon } from "@heroicons/react/20/solid";
+import { PhotoIcon, MagnifyingGlassIcon, LinkIcon } from "@heroicons/react/20/solid";
 import { Input } from "@/components/ui/input";
 import { MenuGrid } from "@/components/menu-grid";
+import { DownloadButtons } from "@/components/download-buttons";
+import { CameraCapture } from "@/components/camera-capture";
+import { UrlInput } from "@/components/url-input";
+import { ProcessingStatus } from "@/components/processing-status";
 import Image from "next/image";
 import { italianMenuUrl, italianParsedMenu } from "@/lib/constants";
 
@@ -19,7 +22,6 @@ export interface MenuItem {
 }
 
 export default function Home() {
-  const { uploadToS3 } = useS3Upload();
   const [menuUrl, setMenuUrl] = useState<string | undefined>(undefined);
   const [status, setStatus] = useState<
     "initial" | "uploading" | "parsing" | "created"
@@ -31,22 +33,91 @@ export default function Home() {
     const objectUrl = URL.createObjectURL(file);
     setStatus("uploading");
     setMenuUrl(objectUrl);
-    const { url } = await uploadToS3(file);
-    setMenuUrl(url);
+    
+    // Convert file to base64 for direct processing
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result as string;
+      setStatus("parsing");
+      
+              try {
+          const res = await fetch("/api/parseMenu", {
+            method: "POST",
+            body: JSON.stringify({
+              menuUrl: base64,
+            }),
+          });
+          
+          if (!res.ok) {
+            let errorMessage = "Failed to process menu";
+            try {
+              const errorData = await res.json();
+              errorMessage = errorData.error || errorMessage;
+            } catch {
+              // If we can't parse the error JSON, use the status text
+              errorMessage = res.statusText || errorMessage;
+            }
+            throw new Error(errorMessage);
+          }
+          
+          const json = await res.json();
+          console.log({ json });
+
+          if (!json.menu || !Array.isArray(json.menu)) {
+            throw new Error("Invalid response format from server");
+          }
+
+          setStatus("created");
+          setParsedMenu(json.menu);
+        } catch (error: unknown) {
+          console.error("Error processing menu:", error);
+          setStatus("initial");
+          const errorMessage = error instanceof Error ? error.message : "Failed to process menu. Please try again.";
+          alert(errorMessage);
+        }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUrlSubmit = async (url: string) => {
     setStatus("parsing");
+    setMenuUrl(url);
+    
+          try {
+        const res = await fetch("/api/parseMenu", {
+          method: "POST",
+          body: JSON.stringify({
+            menuUrl: url,
+          }),
+        });
+        
+        if (!res.ok) {
+          let errorMessage = "Failed to process menu";
+          try {
+            const errorData = await res.json();
+            errorMessage = errorData.error || errorMessage;
+                      } catch {
+              // If we can't parse the error JSON, use the status text
+              errorMessage = res.statusText || errorMessage;
+            }
+          throw new Error(errorMessage);
+        }
+        
+        const json = await res.json();
+        console.log({ json });
 
-    const res = await fetch("/api/parseMenu", {
-      method: "POST",
-      body: JSON.stringify({
-        menuUrl: url,
-      }),
-    });
-    const json = await res.json();
+        if (!json.menu || !Array.isArray(json.menu)) {
+          throw new Error("Invalid response format from server");
+        }
 
-    console.log({ json });
-
-    setStatus("created");
-    setParsedMenu(json.menu);
+        setStatus("created");
+        setParsedMenu(json.menu);
+              } catch (error: unknown) {
+          console.error("Error processing menu:", error);
+          setStatus("initial");
+          const errorMessage = error instanceof Error ? error.message : "Failed to process menu. Please try again.";
+          alert(errorMessage);
+        }
   };
 
   const handleSampleImage = async () => {
@@ -91,47 +162,69 @@ export default function Home() {
       <div className="max-w-2xl mx-auto">
         {status === "initial" && (
           <>
-            <Dropzone
-              accept={{
-                "image/*": [".jpg", ".jpeg", ".png"],
-              }}
-              multiple={false}
-              onDrop={(acceptedFiles) => handleFileChange(acceptedFiles[0])}
-            >
-              {({ getRootProps, getInputProps, isDragAccept }) => (
-                <div
-                  className={`mt-2 flex aspect-video cursor-pointer items-center justify-center rounded-lg border-2 border-dashed ${
-                    isDragAccept ? "border-blue-500" : "border-gray-300"
-                  }`}
-                  {...getRootProps()}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              {/* File Upload Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <PhotoIcon className="h-5 w-5" />
+                  Upload Image
+                </h3>
+                <Dropzone
+                  accept={{
+                    "image/*": [".jpg", ".jpeg", ".png"],
+                  }}
+                  multiple={false}
+                  onDrop={(acceptedFiles) => handleFileChange(acceptedFiles[0])}
                 >
-                  <input {...getInputProps()} />
-                  <div className="text-center">
-                    <PhotoIcon
-                      className="mx-auto h-12 w-12 text-gray-300"
-                      aria-hidden="true"
-                    />
-                    <div className="mt-4 flex text-sm leading-6 text-gray-600">
-                      <label
-                        htmlFor="file-upload"
-                        className="relative rounded-md bg-white font-semibold text-gray-800 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 hover:text-gray-600"
-                      >
-                        <p className="text-xl">Upload your menu</p>
-                        <p className="mt-1 font-normal text-gray-600">
-                          or take a picture
-                        </p>
-                      </label>
+                  {({ getRootProps, getInputProps, isDragAccept }) => (
+                    <div
+                      className={`flex aspect-video cursor-pointer items-center justify-center rounded-lg border-2 border-dashed ${
+                        isDragAccept ? "border-blue-500" : "border-gray-300"
+                      }`}
+                      {...getRootProps()}
+                    >
+                      <input {...getInputProps()} />
+                      <div className="text-center">
+                        <PhotoIcon
+                          className="mx-auto h-12 w-12 text-gray-300"
+                          aria-hidden="true"
+                        />
+                        <div className="mt-4 flex text-sm leading-6 text-gray-600">
+                          <label className="relative rounded-md bg-white font-semibold text-gray-800 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 hover:text-gray-600">
+                            <p className="text-lg">Upload your menu</p>
+                            <p className="mt-1 font-normal text-gray-600">
+                              or drag and drop
+                            </p>
+                          </label>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
+                </Dropzone>
+                
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <CameraCapture onImageCapture={handleFileChange} />
                 </div>
-              )}
-            </Dropzone>
-            <button
-              className="mt-5 font-medium text-blue-400 text-md underline decoration-transparent hover:decoration-blue-200 decoration-2 underline-offset-4 transition hover:text-blue-500"
-              onClick={handleSampleImage}
-            >
-              Need an example image? Try ours.
-            </button>
+              </div>
+
+              {/* URL Input Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <LinkIcon className="h-5 w-5" />
+                  Image URL
+                </h3>
+                <UrlInput onImageUrlSubmit={handleUrlSubmit} />
+              </div>
+            </div>
+            
+            <div className="mt-6 text-center">
+              <button
+                className="font-medium text-blue-400 text-md underline decoration-transparent hover:decoration-blue-200 decoration-2 underline-offset-4 transition hover:text-blue-500 px-4 py-2"
+                onClick={handleSampleImage}
+              >
+                Try sample menu
+              </button>
+            </div>
           </>
         )}
 
@@ -147,27 +240,8 @@ export default function Home() {
           </div>
         )}
 
-        {status === "parsing" && (
-          <div className="mt-10 flex flex-col items-center">
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-500" />
-              <p className="text-lg text-gray-600">
-                Creating your visual menu...
-              </p>
-            </div>
-            <div className="w-full max-w-2xl space-y-4">
-              <div className="h-8 bg-gray-200 rounded-lg animate-pulse" />
-              <div className="grid grid-cols-3 gap-4">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="space-y-2">
-                    <div className="h-32 bg-gray-200 rounded-lg animate-pulse" />
-                    <div className="h-4 bg-gray-200 rounded animate-pulse" />
-                    <div className="h-4 w-2/3 bg-gray-200 rounded animate-pulse" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+        {(status === "uploading" || status === "parsing") && (
+          <ProcessingStatus status={status} />
         )}
       </div>
       {parsedMenu.length > 0 && (
@@ -175,6 +249,9 @@ export default function Home() {
           <h2 className="text-4xl font-bold mb-5">
             Menu – {parsedMenu.length} dishes detected
           </h2>
+          
+          <DownloadButtons menuItems={parsedMenu} originalImageUrl={menuUrl} />
+          
           <div className="relative mb-6">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
             <Input

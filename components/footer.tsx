@@ -1,4 +1,4 @@
-import { FaGithub, FaTwitter, FaLinkedin } from "react-icons/fa";
+import { FaGithub } from "react-icons/fa";
 
 export function Footer() {
   return (
@@ -18,42 +18,22 @@ export function Footer() {
               </a>
               . Created by{" "}
               <a
-                href="https://twitter.com/nutlope"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="#"
                 className="text-gray-500 hover:text-gray-900 transition-colors  underline-offset-4 underline"
               >
-                Hassan.
+                David.
               </a>
             </p>
           </div>
           <div className="flex space-x-4">
             <a
-              href="https://github.com/Nutlope/picmenu"
+              href="https://github.com/wuchudavid/picmenu"
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-600 hover:text-gray-800 transition-colors"
             >
               <FaGithub className="h-6 w-6" />
               <span className="sr-only">GitHub</span>
-            </a>
-            <a
-              href="https://twitter.com/nutlope"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              <FaTwitter className="h-6 w-6" />
-              <span className="sr-only">Twitter</span>
-            </a>
-            <a
-              href="https://linkedin.com/in/nutlope"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              <FaLinkedin className="h-6 w-6" />
-              <span className="sr-only">LinkedIn</span>
             </a>
           </div>
         </div>
