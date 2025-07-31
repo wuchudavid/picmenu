@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "TOGETHER_API_KEY": "@together_api_key"
+  },
+  "functions": {
+    "app/api/parseMenu/route.ts": {
+      "maxDuration": 60
+    }
+  }
+} 
