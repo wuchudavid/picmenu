@@ -8,10 +8,5 @@
   ],
   "env": {
     "TOGETHER_API_KEY": "@together_api_key"
-  },
-  "functions": {
-    "app/api/parseMenu/route.ts": {
-      "maxDuration": 60
-    }
   }
 } 
